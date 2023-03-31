@@ -37,25 +37,11 @@ describe("Order repository test", () => {
   });
 
   it("should create a new order", async () => {
-    const customerRepository = new CustomerRepository();
-    const customer = new Customer("123", "Customer 1");
-    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
-    customer.changeAddress(address);
-    await customerRepository.create(customer);
+    const customer = await createCustomer("123");
+    const product = await createProduct("123");
+    const orderItem = await createOrderItem("1", product, 2);
 
-    const productRepository = new ProductRepository();
-    const product = new Product("123", "Product 1", 10);
-    await productRepository.create(product);
-
-    const orderItem = new OrderItem(
-      "1",
-      product.name,
-      product.price,
-      product.id,
-      2
-    );
-
-    const order = new Order("123", "123", [orderItem]);
+    const order = new Order("123", customer.id, [orderItem]);
 
     const orderRepository = new OrderRepository();
     await orderRepository.create(order);
@@ -81,4 +67,30 @@ describe("Order repository test", () => {
       ],
     });
   });
+
+  async function createCustomer(id: string, name: string = "Customer"): Promise<Customer> {
+    const customerRepository = new CustomerRepository();
+    const customer = new Customer(id, name);
+    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    customer.changeAddress(address);
+    await customerRepository.create(customer);
+    return customer;
+  }
+
+  async function createProduct(id: string, name: string = "Product", price: number = 10): Promise<Product> {
+    const productRepository = new ProductRepository();
+    const product = new Product(id, name, price);
+    await productRepository.create(product);
+    return product;
+  }
+
+  async function createOrderItem(id: string, product: Product, quantity: number = 1): Promise<OrderItem> {
+    return new OrderItem(
+      id,
+      product.name,
+      product.price,
+      product.id,
+      quantity
+    );
+  }
 });
