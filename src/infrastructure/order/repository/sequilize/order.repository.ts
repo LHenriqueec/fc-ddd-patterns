@@ -26,7 +26,14 @@ export default class OrderRepository implements RepositoryInterface<Order> {
   }
 
   async update(entity: Order): Promise<void> {
-    throw new Error('Not implemented yet');
+    await OrderModel.update({
+      customer_id: entity.customerId,
+      items: entity.items,
+      total: entity.total
+    },
+    {
+      where: {id: entity.id}
+    });
   }
 
   async find(id: string): Promise<Order> {
@@ -45,12 +52,12 @@ export default class OrderRepository implements RepositoryInterface<Order> {
 
   private transformModel(model: OrderModel): Order {
     const items = model.items.map(itemModel => new OrderItem(
-          itemModel.id,
-          itemModel.name,
-          itemModel.price,
-          itemModel.product_id,
-          itemModel.quantity
-        ));
-        return new Order(model.id, model.customer_id, items);
+      itemModel.id,
+      itemModel.name,
+      itemModel.price,
+      itemModel.product_id,
+      itemModel.quantity
+    ));
+    return new Order(model.id, model.customer_id, items);
   }
 }
