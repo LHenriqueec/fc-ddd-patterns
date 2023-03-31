@@ -34,11 +34,14 @@ export default class OrderRepository implements RepositoryInterface<Order> {
   }
 
   async findAll(): Promise<Order[]> {
-    return (await OrderModel.findAll({
+    return OrderModel.findAll({
       include: ["items"]
-    }))
-      .map(model => {
-        let items = model.items.map(itemModel => new OrderItem(
+    })
+    .then(models => models.map(this.transformModel))
+  }
+
+  private transformModel(model: OrderModel): Order {
+    const items = model.items.map(itemModel => new OrderItem(
           itemModel.id,
           itemModel.name,
           itemModel.price,
@@ -46,6 +49,5 @@ export default class OrderRepository implements RepositoryInterface<Order> {
           itemModel.quantity
         ));
         return new Order(model.id, model.customer_id, items);
-      })
   }
 }
