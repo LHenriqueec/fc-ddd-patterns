@@ -29,8 +29,11 @@ export default class OrderRepository implements RepositoryInterface<Order> {
     throw new Error('Not implemented yet');
   }
 
-  async find(id: String): Promise<Order> {
-    throw new Error('Not implemented yet');
+  async find(id: string): Promise<Order> {
+    return OrderModel.findOne({
+      where: { id },
+      include: ["items"]
+    }).then(this.transformModel)
   }
 
   async findAll(): Promise<Order[]> {

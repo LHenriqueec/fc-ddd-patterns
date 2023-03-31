@@ -68,6 +68,20 @@ describe("Order repository test", () => {
     });
   });
 
+  it("should find order by id", async () => {
+    let customer = await createCustomer("123");
+    let product = await createProduct("123");
+    let orderItem = await createOrderItem("1", product, 2);
+    const order = new Order("123", customer.id, [orderItem]);
+
+    const orderRepository = new OrderRepository();
+    await orderRepository.create(order);
+
+    const orderFound = await orderRepository.find(order.id);
+    
+    expect(orderFound).toStrictEqual(order);
+  });
+
   it("should list all orders", async () => {
     let customer = await createCustomer("123");
     let product = await createProduct("123");
