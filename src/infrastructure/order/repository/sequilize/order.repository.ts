@@ -1,10 +1,10 @@
-import RepositoryInterface from "../../../../domain/@shared/repository/repository-interface";
+import OrderRepositoryInterface from "../../../../domain/checkout/repository/order-repository.interface";
 import Order from "../../../../domain/checkout/entity/order";
 import OrderItem from "../../../../domain/checkout/entity/order_item";
 import OrderItemModel from "./order-item.model";
 import OrderModel from "./order.model";
 
-export default class OrderRepository implements RepositoryInterface<Order> {
+export default class OrderRepository implements OrderRepositoryInterface {
   async create(entity: Order): Promise<void> {
     await OrderModel.create(
       {
@@ -26,14 +26,25 @@ export default class OrderRepository implements RepositoryInterface<Order> {
   }
 
   async update(entity: Order): Promise<void> {
-    await OrderModel.update({
-      customer_id: entity.customerId,
-      items: entity.items,
-      total: entity.total
-    },
-    {
-      where: {id: entity.id}
-    });
+    await OrderModel.update(
+      {
+        id: entity.id,
+        customer_id: entity.customerId
+      },
+      {
+        where: { id: entity.id }
+      })
+      .then(() => entity.items.forEach(item => {
+          OrderItemModel.upsert({
+            order_id: entity.id,
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            product_id: item.productId,
+            quantity: item.quantity,
+          })
+        })
+      )
   }
 
   async find(id: string): Promise<Order> {
