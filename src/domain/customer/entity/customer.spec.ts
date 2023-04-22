@@ -1,3 +1,9 @@
+import EventDispatcher from "../../@shared/event/event-dispatcher";
+import CustomerChangeAddressEvent from "../event/customer-change-address.event";
+import CustomerCreatedEvent from "../event/customer-created.event";
+import EnviaConsoleLogHandler from "../event/handler/envia-console-log";
+import EnviaConsoleLog1Handler from "../event/handler/envia-console-log-1.handler";
+import EnviaConsoleLog2Handler from "../event/handler/envia-console-log-2.handler";
 import Address from "../value-object/address";
 import Customer from "./customer";
 
@@ -59,5 +65,43 @@ describe("Customer unit tests", () => {
 
     customer.addRewardPoints(10);
     expect(customer.rewardPoints).toBe(20);
+  });
+
+  it("should send events when customer was created", () => {
+    const handler1 = new EnviaConsoleLog1Handler();
+    const handler2 = new EnviaConsoleLog2Handler();
+    const dispacher = new EventDispatcher();
+    const spyHandler1 = jest.spyOn(handler1, 'handle');
+    const spyHandler2 = jest.spyOn(handler2, 'handle');
+
+    dispacher.register(CustomerCreatedEvent.name, handler1);
+    dispacher.register(CustomerCreatedEvent.name, handler2);
+
+    new Customer("1", "Customer 1", dispacher);
+
+    expect(spyHandler1).toHaveBeenCalled()
+    expect(spyHandler2).toHaveBeenCalled()
+  });
+
+  it("should send events when customer change address", () => {
+    const handler = new EnviaConsoleLogHandler();
+    const dispacher = new EventDispatcher();
+    const spyHandler = jest.spyOn(handler, 'handle');
+    jest.useFakeTimers('modern').setSystemTime(new Date());
+
+    dispacher.register(CustomerChangeAddressEvent.name, handler);
+
+    const customer = new Customer("1", "Customer 1", dispacher);
+    const address = new Address("street 1", 1, "123456", "City 1");
+    customer.changeAddress(address);
+
+    expect(spyHandler).toHaveBeenCalledWith({
+      dataTimeOccurred: new Date(),
+      eventData: {
+        id: customer.id,
+        name: customer.name,
+        address
+      }
+    })
   });
 });
